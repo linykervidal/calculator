@@ -27,13 +27,12 @@ for (let i = 0; i < 10; i++) {
     }
 }
 let numbers = [];
-let partialNumber;
+let partialNumber = '';
 let partialResult;
 let resultCalc;
 let lastOp = [];
-let eventsActive = false;
-let usedOp = false;
 let isFloated = false;
+let usedOp = false;
 let isFinished = false;
 function resetStyle() {
     pView.style.fontSize = '72px';
@@ -41,7 +40,6 @@ function resetStyle() {
 }
 function addOpEvents() {
     isFinished = false;
-    eventsActive = true;
     opSum === null || opSum === void 0 ? void 0 : opSum.addEventListener('click', useSomeOp);
     opSub === null || opSub === void 0 ? void 0 : opSub.addEventListener('click', useSomeOp);
     opMult === null || opMult === void 0 ? void 0 : opMult.addEventListener('click', useSomeOp);
@@ -52,6 +50,7 @@ function addNumber(n) {
         resetStyle();
         pView.innerText = n.toString();
         addOpEvents();
+        resultHtml.style.opacity = '1';
     }
     else if (usedOp) {
         pView.innerText += n;
@@ -64,11 +63,11 @@ function addNumber(n) {
     switch (lastOp[lastOp.length - 1]) {
         case 'sum':
             resultCalc = partialResult + parseFloat(partialNumber);
-            resultHtml.innerText = `= ${resultCalc}`;
+            resultHtml.innerText = `= ${resultCalc}`.replace('.', ',');
             break;
         case 'sub':
             resultCalc = partialResult - parseFloat(partialNumber);
-            resultHtml.innerText = `= ${resultCalc}`;
+            resultHtml.innerText = `= ${resultCalc}`.replace('.', ',');
             break;
         case 'mult':
             switch (lastOp[lastOp.length - 2]) {
@@ -81,7 +80,7 @@ function addNumber(n) {
                 default:
                     resultCalc = partialResult * parseFloat(partialNumber);
             }
-            resultHtml.innerText = `= ${resultCalc}`;
+            resultHtml.innerText = `= ${resultCalc}`.replace('.', ',');
             break;
         case 'div':
             switch (lastOp[lastOp.length - 2]) {
@@ -94,12 +93,11 @@ function addNumber(n) {
                 default:
                     resultCalc = partialResult / parseFloat(partialNumber);
             }
-            resultHtml.innerText = `= ${resultCalc}`;
+            resultHtml.innerText = `= ${resultCalc}`.replace('.', ',');
             break;
         default:
             resultHtml.innerText = `= ${pView.innerText}`;
     }
-    resultHtml.style.opacity = '1';
 }
 function useSomeOp(e) {
     numbers.push(parseFloat(partialNumber));
@@ -109,10 +107,8 @@ function useSomeOp(e) {
     else {
         partialResult = resultCalc;
     }
-    if (isFloated) {
-        isFloated = false;
-    }
     resultHtml.innerText = `= ${partialResult}`.replace('.', ',');
+    isFloated = false;
     usedOp = true;
     partialNumber = '';
     switch (e.target) {
@@ -134,38 +130,32 @@ function useSomeOp(e) {
     }
 }
 function floatingNumber() {
-    if (!eventsActive) {
-        addOpEvents();
-    }
-    if (isFinished) {
-        resetStyle();
-        partialNumber = '0.';
-        pView.innerText = '0,';
-    }
-    else if (!isFloated) {
-        if (pView.innerText === '0') {
-            partialNumber = '0.';
-            pView.innerText += ',';
-            resultHtml.innerText = `= ${pView.innerText}`;
+    if (!isFloated) {
+        if (pView.innerText === '0' || isFinished) {
+            resetStyle();
+            pView.innerText = '0,';
+            resultHtml.innerText = '= 0,';
+            addOpEvents();
             resultHtml.style.opacity = '1';
         }
-        else if (partialNumber === '') {
-            partialNumber = '0.';
-            pView.innerText += ' 0,';
+        else if (partialNumber === '' && usedOp) {
+            pView.innerText += '0,';
+            usedOp = false;
         }
         else {
-            partialNumber += '.';
             pView.innerText += ',';
         }
+        partialNumber += '.';
+        isFloated = true;
     }
-    isFloated = true;
 }
 decimal === null || decimal === void 0 ? void 0 : decimal.addEventListener('click', floatingNumber);
 function clearDatas() {
     numbers = [];
     lastOp = [];
-    usedOp = false;
+    partialNumber = '';
     isFloated = false;
+    usedOp = false;
     opSum === null || opSum === void 0 ? void 0 : opSum.removeEventListener('click', useSomeOp);
     opSub === null || opSub === void 0 ? void 0 : opSub.removeEventListener('click', useSomeOp);
     opMult === null || opMult === void 0 ? void 0 : opMult.removeEventListener('click', useSomeOp);

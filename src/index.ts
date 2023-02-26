@@ -39,13 +39,12 @@ for (let i: number = 0; i < 10; i++) {
 
 //criando variáveis que manipularão a lógica do projeto
 let numbers: number[] = []
-let partialNumber: string
+let partialNumber: string = ''
 let partialResult: number
 let resultCalc: number
 let lastOp: string[] = []
-let eventsActive: boolean = false
-let usedOp: boolean = false
 let isFloated: boolean = false
+let usedOp: boolean = false
 let isFinished: boolean = false
 
 
@@ -60,7 +59,6 @@ function resetStyle(): void {
 //adicionando os eventos operacionais
 function addOpEvents(): void {
     isFinished = false
-    eventsActive = true
     opSum?.addEventListener('click', useSomeOp)
     opSub?.addEventListener('click', useSomeOp)
     opMult?.addEventListener('click', useSomeOp)
@@ -73,6 +71,7 @@ function addNumber(n: number): void {
         resetStyle()
         pView.innerText = n.toString()
         addOpEvents()
+        resultHtml.style.opacity = '1'
     } else if (usedOp) {
         pView.innerText += n
         usedOp = false
@@ -84,11 +83,11 @@ function addNumber(n: number): void {
     switch (lastOp[lastOp.length - 1]) {
         case 'sum':
             resultCalc = partialResult + parseFloat(partialNumber)
-            resultHtml.innerText = `= ${resultCalc}`
+            resultHtml.innerText = `= ${resultCalc}`.replace('.', ',')
             break
         case 'sub':
             resultCalc = partialResult - parseFloat(partialNumber)
-            resultHtml.innerText = `= ${resultCalc}`
+            resultHtml.innerText = `= ${resultCalc}`.replace('.', ',')
             break
         case 'mult':
             switch (lastOp[lastOp.length - 2]) {
@@ -101,7 +100,7 @@ function addNumber(n: number): void {
                 default:
                     resultCalc = partialResult * parseFloat(partialNumber)
             }
-            resultHtml.innerText = `= ${resultCalc}`
+            resultHtml.innerText = `= ${resultCalc}`.replace('.', ',')
             break
         case 'div':
             switch (lastOp[lastOp.length - 2]) {
@@ -114,12 +113,11 @@ function addNumber(n: number): void {
                 default:
                     resultCalc = partialResult / parseFloat(partialNumber)
             }
-            resultHtml.innerText = `= ${resultCalc}`
+            resultHtml.innerText = `= ${resultCalc}`.replace('.', ',')
             break
         default:
             resultHtml.innerText = `= ${pView.innerText}`
     }
-    resultHtml.style.opacity = '1'
 }
 
 //usando as operações
@@ -132,11 +130,8 @@ function useSomeOp(e: Event): void {
         partialResult = resultCalc
     }
 
-    if (isFloated) {
-        isFloated = false
-    }
-
     resultHtml.innerText = `= ${partialResult}`.replace('.', ',')
+    isFloated = false
     usedOp = true
     partialNumber = ''
 
@@ -160,32 +155,24 @@ function useSomeOp(e: Event): void {
     }
 }
 
-//PAREI AQUI, TÁ BUGADO AINDA
-function floatingNumber() {
-    if (!eventsActive) {
-        addOpEvents()
-    }
-
-    if (isFinished) {
-        resetStyle()
-        partialNumber = '0.'
-        pView.innerText = '0,'
-    } else if (!isFloated) {
-        if (pView.innerText === '0') {
-            partialNumber = '0.'
-            pView.innerText += ','
-            resultHtml.innerText = `= ${pView.innerText}`
+//tornando o numero decimal
+function floatingNumber(): void {
+    if (!isFloated) {
+        if (pView.innerText === '0' || isFinished) {
+            resetStyle()
+            pView.innerText = '0,'
+            resultHtml.innerText = '= 0,'
+            addOpEvents()
             resultHtml.style.opacity = '1'
-        } else if (partialNumber === '') {
-            partialNumber = '0.'
-            pView.innerText += ' 0,'
+        } else if (partialNumber === '' && usedOp) {
+            pView.innerText += '0,'
+            usedOp = false
         } else {
-            partialNumber += '.'
             pView.innerText += ','
         }
+        partialNumber += '.'
+        isFloated = true
     }
-
-    isFloated = true
 }
 
 decimal?.addEventListener('click', floatingNumber)
@@ -194,8 +181,9 @@ decimal?.addEventListener('click', floatingNumber)
 function clearDatas(): void {
     numbers = []
     lastOp = []
-    usedOp = false
+    partialNumber = ''
     isFloated = false
+    usedOp = false
     opSum?.removeEventListener('click', useSomeOp)
     opSub?.removeEventListener('click', useSomeOp)
     opMult?.removeEventListener('click', useSomeOp)
